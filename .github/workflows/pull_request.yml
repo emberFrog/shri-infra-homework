@@ -1,0 +1,27 @@
+name: Handle pull request
+
+on:
+  pull_request:
+    branches:
+      - 'main'
+      - 'master'
+    types: [opened, reopened]
+
+jobs:
+  lint:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v2
+      - run: npm ci
+      - run: npm run lint
+
+  test:
+    runs-on: ubuntu-20.04
+
+    steps:
+      -uses: actions/checkout@v4
+      - uses: actions/setup-node@v2
+      - run: npm ci
+      - run: npm run test
