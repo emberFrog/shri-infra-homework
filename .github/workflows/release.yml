@@ -5,7 +5,7 @@ on: [workflow_dispatch]
 jobs:
   lint-test:
     name: Run lint-test
-    uses: ./.github/workflows/pull_request.yml
+    uses: ./.github/workflows/pr_checks.yml
 
   create-release-branch:
     runs-on: ubuntu-latest
