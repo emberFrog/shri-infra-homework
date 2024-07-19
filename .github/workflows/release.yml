@@ -32,7 +32,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: release/${{ github.run_number }}
+          ref: releases/${{ github.run_number }}
       - name: Login YC
         uses: yc-actions/yc-cr-login@v2
         with:
