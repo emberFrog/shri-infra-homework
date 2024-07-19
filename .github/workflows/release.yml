@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
       - name: Setup Node.js
         uses: actions/setup-node@v3
       - name: Install dependencies
@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
       - name: Setup Node.js
         uses: actions/setup-node@v3
       - name: Install dependencies
@@ -32,7 +32,7 @@ jobs:
     needs: [lint, test]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
       - name: Get current run number
         id: run-number
         run: echo "run_number=${{ github.run_number }}" >> $GITHUB_ENV
