@@ -1,17 +1,12 @@
 name: Handle pull request
 
-on:
-  pull_request:
-    branches:
-      - 'main'
-      - 'master'
-    types: [opened, reopened]
+on [pull_request, workflow_call]
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
       - run: npm ci
       - run: npm run lint
@@ -19,7 +14,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      -uses: actions/checkout@v4
+      -uses: actions/checkout@v3
       - uses: actions/setup-node@v3
       - run: npm ci
       - run: npm run test
