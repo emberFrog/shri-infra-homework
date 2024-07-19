@@ -24,3 +24,20 @@ jobs:
         run: |
           git checkout -b releases/${{ github.run_number }}
           git push origin releases/${{ github.run_number }}
+
+  create-release-docker:
+    runs-on: ubuntu:latest
+    needs: [create-release-branch]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: release/${{ github.run_number }}
+      - name: Create Docker image
+        run: |
+          docker build -t cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ github.run_number }} .
+          docker push cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ github.run_number }}
+      - name: Create Docker image latest
+        run: |
+          docker build -t cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ github.run_number }}_latest .
+          docker push cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ github.run_number }}_latest
