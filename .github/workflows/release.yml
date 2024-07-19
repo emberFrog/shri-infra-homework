@@ -12,7 +12,7 @@ jobs:
     needs: [lint-test]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Get current run number
         id: run-number
         run: echo "run_number=${{ github.run_number }}" >> $GITHUB_ENV
