@@ -37,11 +37,11 @@ jobs:
         uses: yc-actions/yc-cr-login@v2
         with:
           yc-sa-json-credentials: ${{ secrets.EDITOR }}
-      - name: Create Docker image
+      - name: Create Docker images
         run: |
           docker build -t cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ github.run_number }} .
-          docker push cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ github.run_number }}
-      - name: Create Docker image latest
-        run: |
           docker build -t cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ github.run_number }}_latest .
+      - name: Push Docker images
+        run: |
+          docker push cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ github.run_number }}
           docker push cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ github.run_number }}_latest
