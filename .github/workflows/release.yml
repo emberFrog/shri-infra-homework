@@ -33,6 +33,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: release/${{ github.run_number }}
+      - name: Login YC
+        uses: yc-actions/yc-cr-login@v2
+        with:
+          yc-sa-json-credentials: ${{ secrets.EDITOR }}
       - name: Create Docker image
         run: |
           docker build -t cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ github.run_number }} .
