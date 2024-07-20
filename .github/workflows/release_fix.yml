@@ -27,3 +27,58 @@ jobs:
           ref: ${{ inputs.release_version }}
       - run: npm ci
       - run: npm run test
+
+  create-docker-images-fix:
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_version }}
+
+      - name: Extract release number
+        id: extract_number
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const releaseVersion = '${{ inputs.release_version }}';
+            const num = releaseVersion.split('/')[1];
+            core.exportVariable('VER', num);
+
+      - name: Login YC with Yandex ID token
+        run: docker login --username oauth --password ${{ secrets.YC_TOKEN }} cr.yandex
+
+      - name: Create and push Docker images
+        run: |
+          docker build -t cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ env.VER }}_fix${{ github.run_number }} .
+          docker build -t cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ env.VER }}_latest .
+          docker push cr.yandex/${{secrets.ID_CONTAINER_REGISTRY}}/app:${{ env.VER }}_fix${{ github.run_number }}
+          docker push cr.yandex/${{secrets.ID_CONTAINER_REGISTRY}}/app:${{ env.VER }}_latest
+
+  create-tag:
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_version }}
+
+      - name: Extract release number
+        id: extract_number
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const releaseVersion = '${{ inputs.release_version }}';
+            const num = releaseVersion.split('/')[1];
+            core.exportVariable('VER', num);
+
+      - name: Create and push tag
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          git fetch --tags
+          TAG=${{ env.VAR }}_fix${{ github.run_number }}
+          git tag -a $TAG -m "Tagging version $TAG"
+          git push origin $TAG
