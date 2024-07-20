@@ -122,14 +122,13 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const context = github.context;
             const new_version = `v${{ github.run_number }}`;
             const branch_name = `update-changelog-${new_version}`;
             const base = 'main';
             const title = `Update CHANGELOG for version ${new_version}`;
             const body = `This PR updates the CHANGELOG.md file with changes for version ${new_version}.`;
 
-            await github.rest.pulls.create({
+            github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: title,
