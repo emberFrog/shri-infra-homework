@@ -33,6 +33,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: releases/${{ github.run_number }}
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.14.0'
+      - run: |
+          npm install
+          npm run build
       - name: Login YC with Yandex ID token
         run: docker login --username oauth --password ${{ secrets.YC_TOKEN }} cr.yandex
       - name: Create Docker images
