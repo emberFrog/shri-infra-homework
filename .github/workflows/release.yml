@@ -43,3 +43,54 @@ jobs:
         run: |
           docker push cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ github.run_number }}
           docker push cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ github.run_number }}_latest
+
+  create-tag:
+    runs-on: ubuntu-latest
+    needs: [create-release-docker]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: releases/${{ github.run_number }}
+      - name: Fetch all tags
+        run: git fetch --tags
+      - name: Create and push tag
+        run: |
+          TAG=v${{ github.run_number }}
+          git tag -a $TAG -m "Tagging version $TAG"
+          git push origin $TAG
+
+  create-issue:
+    runs-on: ubuntu-latest
+    needs: [create-tag]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Get previous tag
+        id: get-previous-tag
+        run: |
+          previous_tag=$(git tag --sort=-creatordate | grep -v "v${{ github.run_number }}" | head -n 1)
+          echo "previous_tag=$previous_tag" >> $GITHUB_ENV
+      - name: Get commit list
+        id: get-commits
+        run: |
+          commits=$(git log ${{ env.previous_tag }}..HEAD --pretty=format:'* %s' --abbrev-commit)
+          echo "commits=$commits" >> $GITHUB_ENV
+      - name: Create GitHub Issue
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const version = `v${{ github.run_number }}`;
+            const date = new Date().toISOString().split('T')[0];
+            const author = context.actor;
+            const dockerImage = `cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ github.run_number }}`;
+            const commits = process.env.commits;
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Release ${version}`,
+              body: `**Release Date:** ${date}\n**Author:** ${author}\n**Version:** ${version}\n**Commits:**\n${commits}\n**Docker Image:**\n[${dockerImage}](https://cr.yandex/registry/${{ secrets.ID_CONTAINER_REGISTRY }}/${{ github.run_number }})`,
+            });
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
