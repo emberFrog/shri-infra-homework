@@ -125,22 +125,22 @@ jobs:
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
 
       - name: Get previous tag
-        id: previous-tag
+        id: get-previous-tag
         run: |
-          previous_tag=$(git describe --tags $(git rev-list --tags --max-count=1))
+          previous_tag=$(git tag --sort=-creatordate | grep -v "v${{ github.run_number }}" | head -n 1)
           echo "previous_tag=$previous_tag" >> $GITHUB_ENV
 
       - name: Get commit list
         id: get-commits
         run: |
-          commits=$(git log ${{ env.previous_tag }}..HEAD --pretty=format:'* %h - %s')
+          commits=$(git log ${{ env.previous_tag }}..HEAD --pretty=format:'* %s' --abbrev-commit)
           echo "commits=$commits" >> $GITHUB_ENV
 
       - name: Update CHANGELOG.md
         run: |
           new_version="${{ github.ref_name }}"
           changelog_file="CHANGELOG.md"
-          date=$(date +'%Y-%m-%d')
+          date=$(date +'%d-%m-%Y')
 
           # Create new changelog entry
           echo -e "## $new_version - $date\n\n${{ env.commits }}\n\n$(cat $changelog_file)" > $changelog_file
