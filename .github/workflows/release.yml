@@ -25,8 +25,8 @@ jobs:
 
       - name: Create and push release branch
         run: |
-          git checkout -b releases/${{ github.run_number }}
-          git push origin releases/${{ github.run_number }}
+          git checkout -b release/${{ github.run_number }}
+          git push origin release/${{ github.run_number }}
 
   create-release-docker:
     runs-on: ubuntu-latest
@@ -35,7 +35,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: releases/${{ github.run_number }}
+          ref: release/${{ github.run_number }}
 
       - name: Login YC with Yandex ID token
         run: docker login --username oauth --password ${{ secrets.YC_TOKEN }} cr.yandex
@@ -57,7 +57,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: releases/${{ github.run_number }}
+          ref: release/${{ github.run_number }}
       - name: Configure Git
         run: |
           git config --global user.name "${{ github.actor }}"
