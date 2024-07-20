@@ -36,7 +36,7 @@ jobs:
       - name: Login YC
         uses: yc-actions/yc-cr-login@v2
         with:
-          yc-sa-json-credentials: ${{ secrets.EDITOR }}
+          yc-sa-json-credentials: ${{ secrets.YC_TOKEN }}
       - name: Create Docker images
         run: |
           docker build -t cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ github.run_number }} .
