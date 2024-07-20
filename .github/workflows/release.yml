@@ -53,6 +53,7 @@ jobs:
         run: |
           git config --global user.name "${{ github.actor }}"
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          git fetch --tags
           TAG=v${{ github.run_number }}
           git tag -a $TAG -m "Tagging version $TAG"
           git push origin $TAG
@@ -64,10 +65,9 @@ jobs:
       - name: Get previous tag and commit list
         id: changelog-info
         run: |
-          git fetch --tags
           previous_tag=$(git tag --sort=-creatordate | grep -v "v${{ github.run_number }}" | head -n 1)
-          commits=$(git log $previous_tag..HEAD --pretty=format:'* %s' --abbrev-commit)
           echo "previous_tag=$previous_tag" >> $GITHUB_ENV
+          commits=$(git log $previous_tag..HEAD --pretty=format:'* %s' --abbrev-commit)
           echo "commits=$commits" >> $GITHUB_ENV
 
       - name: Create GitHub Issue
