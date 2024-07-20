@@ -27,7 +27,7 @@ jobs:
 
   create-release-docker:
     runs-on: ubuntu:latest
-    needs: [create-release-branch]
+    needs: create-release-branch
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
