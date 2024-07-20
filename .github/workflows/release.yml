@@ -84,46 +84,20 @@ jobs:
         run: |
           commits=$(git log ${{ env.previous_tag }}..HEAD --pretty=format:'* %s' --abbrev-commit)
           echo "commits=$commits" >> $GITHUB_ENV
-
-      - name: Create changelog
-        id: changelog
-        uses: requarks/changelog-action@v1
+      - name: Create GitHub Issue
+        uses: actions/github-script@v6
         with:
-          token: ${{ secrets.GH_ACCESS_TOKEN }}
-          tag: ${{ github.ref_name }}
-          writeToFile: false
-
-      - name: Create issue
-        id: issue
+          script: |
+            const version = `v${{ github.run_number }}`;
+            const date = new Date().toISOString().split('T')[0];
+            const author = context.actor;
+            const dockerImage = `cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ github.run_number }}`;
+            const commits = process.env.commits;
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Release ${version}`,
+              body: `**Release Date:** ${date}\n**Author:** ${author}\n**Version:** ${version}\n**Commits:**\n${commits}\n**Docker Image:**\n[${dockerImage}](https://cr.yandex/registry/${{ secrets.ID_CONTAINER_REGISTRY }}/${{ github.run_number }})`,
+            });
         env:
-          TAG_NAME: ${{ github.ref_name }}
-          GH_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
-        run: |
-          TITLE="Release ${{ github.ref_name }}"
-          BODY=$(cat << 'EOF'
-
-          # Release ${{ github.ref_name }}
-
-          Автор релиза: @${{ github.actor }}
-          Дата релиза: ${{ github.event.head_commit.timestamp }}
-          Версия релиза: ${{ github.ref_name }}
-
-          ## CHANGELOG
-          ${{ steps.changelog.outputs.changes }}
-
-          EOF
-          )
-
-          ISSUE_ID=$(gh issue list --json number,title -q \
-            ".[] | select(.title == \"$TITLE\") | .number")
-          if [ ! -z "$ISSUE_ID" ]; then
-            gh issue edit $ISSUE_ID --body "$BODY"
-          else
-            gh issue create --title "$TITLE" --body "$BODY" --assignee ${{ github.actor }} --label "release"
-            ISSUE_ID=$(gh issue list --json number,title -q \
-            ".[] | select(.title == \"$TITLE\") | .number")
-          fi
-          echo "issueId=$ISSUE_ID" >> "$GITHUB_OUTPUT"
-
-    outputs:
-      issueNumber: ${{ steps.issue.outputs.issueId }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
