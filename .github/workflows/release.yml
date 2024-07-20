@@ -102,10 +102,10 @@ jobs:
 
       - name: Update CHANGELOG.md and create a branch
         run: |
-          new_version="v${{ github.run_number }}"
+          new_version="${{ github.run_number }}"
           changelog_file="CHANGELOG.md"
           date=$(date +'%d-%m-%Y')
-          branch_name="update-changelog-${new_version}"
+          branch_name="release/${new_version}"
 
           # Create new changelog entry
           echo -e "## $new_version - $date\n\n${{ env.commits }}\n\n$(cat $changelog_file)" > $changelog_file
@@ -122,8 +122,8 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const new_version = `v${{ github.run_number }}`;
-            const branch_name = `update-changelog-${new_version}`;
+            const new_version = `${{ github.run_number }}`;
+            const branch_name = `release/${new_version}`;
             const base = 'main';
             const title = `Update CHANGELOG for version ${new_version}`;
             const body = `This PR updates the CHANGELOG.md file with changes for version ${new_version}.`;
