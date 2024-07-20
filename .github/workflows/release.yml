@@ -52,6 +52,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: releases/${{ github.run_number }}
+      - name: Configure Git
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
       - name: Fetch all tags
         run: git fetch --tags
       - name: Create and push tag
@@ -66,6 +70,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Configure Git
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
       - name: Get previous tag
         id: get-previous-tag
         run: |
