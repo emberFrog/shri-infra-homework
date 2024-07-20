@@ -141,11 +141,36 @@ jobs:
           new_version="${{ github.ref_name }}"
           changelog_file="CHANGELOG.md"
           date=$(date +'%d-%m-%Y')
+          branch_name="update-changelog-${new_version}"
 
           # Create new changelog entry
           echo -e "## $new_version - $date\n\n${{ env.commits }}\n\n$(cat $changelog_file)" > $changelog_file
 
           # Add and commit changes
+          git checkout -b $branch_name
           git add $changelog_file
           git commit -m "Update CHANGELOG for version $new_version"
           git push origin main
+
+      - name: Create Pull Request
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const github = require('@actions/github');
+            const context = github.context;
+            const new_version = `v${{ github.run_number }}`;
+            const branch_name = `update-changelog-${new_version}`;
+            const base = 'main';
+            const title = `Update CHANGELOG for version ${new_version}`;
+            const body = `This PR updates the CHANGELOG.md file with changes for version ${new_version}.`;
+
+            await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              head: branch_name,
+              base: base,
+            });
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
