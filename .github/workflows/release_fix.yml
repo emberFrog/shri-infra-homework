@@ -12,32 +12,20 @@ on:
         required: true
 
 jobs:
-  setup:
+  lint:
     runs-on: ubuntu-latest
-    outputs:
-      branch_name: ${{ steps.set-branch-name.outputs.branch_name }}
-
     steps:
-      - name: Set up branch name
-        id: set-branch-name
-        run: |
-          echo "::set-output name=branch_name::releases/${{ github.event.inputs.release_version }}"
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          ref: ${{ steps.set-branch-name.outputs.branch_name }}
+          ref: release/${{inputs.release_version}}
+      - run: npm ci
+      - run: npm run lint
 
-  lint-test:
+  test:
     runs-on: ubuntu-latest
-    needs: setup
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.setup.outputs.branch_name }}
-
-      - name: Run lint and test
-        run: |
-          npm run lint
-          npm run test
+          ref: release/${{inputs.release_version}}
+      - run: npm ci
+      - run: npm run test
