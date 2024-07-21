@@ -114,7 +114,6 @@ jobs:
         with:
           script: |
             const issue_number = ${{ inputs.issue_number }};
-            const releaseVersion = '${{ inputs.release_version }}';
             const ver = '${{ env.VER }}';
             const run_number = '${{ github.run_number }}';
             const docker_image = `cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${ver}_fix${run_number}`;
