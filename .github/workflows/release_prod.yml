@@ -1,0 +1,41 @@
+name: Release Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Release version'
+        required: true
+      issue_number:
+        description: 'Issue number ID'
+        required: true
+
+jobs:
+  run_docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract release number
+        id: extract_number
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const releaseVersion = '${{ inputs.release_version }}';
+            const num = releaseVersion.split('/')[1];
+            core.exportVariable('VER', num);
+
+      - name: Deploy to prod
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            sudo groupadd docker
+            sudo usermod -aG docker ${USER}
+            docker login --username oauth --password ${{ secrets.YC_TOKEN }} cr.yandex
+            docker kill $(docker ps -q)
+            docker rm &(docker ps -a -q)
+            docker image prune -f
+
+            docker pull cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ env.VER }}_latest
+            docker run -d --restart unless-stopped -p 3000:3000 cr.yandex/${{secrets.ID_CONTAINER_REGISTRY}}/app:${{ env.VER }}_latest
