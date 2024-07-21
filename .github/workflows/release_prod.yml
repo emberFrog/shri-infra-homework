@@ -39,3 +39,30 @@ jobs:
 
             docker pull cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ env.VER }}_latest
             docker run -d --restart unless-stopped -p 3000:3000 cr.yandex/${{secrets.ID_CONTAINER_REGISTRY}}/app:${{ env.VER }}_latest
+
+  add_issue_comment:
+    runs-on: ubuntu-latest
+    needs: [deploy_to_prod]
+    steps:
+      - name: Add comment to issue
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const actor = '${{ github.actor }}';
+            const date = new Date().toISOString();
+            const imageUrl = `cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ env.VER }}_latest`;
+            const issueNum = '${{ inputs.issue_number }}';
+
+            const comment = `
+              Релиз ${{ env.VER }} был запущен в продакшн.
+              - **Дата:** ${date}
+              - **Автор:** ${actor}
+              - **Образ Docker:** ${imageUrl}
+            `;
+
+            await github.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNum,
+              body: comment,
+            });
