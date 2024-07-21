@@ -11,7 +11,7 @@ on:
         required: true
 
 jobs:
-  run_docker:
+  deploy_to_prod:
     runs-on: ubuntu-latest
     steps:
       - name: Extract release number
@@ -24,18 +24,29 @@ jobs:
             core.exportVariable('VER', num);
 
       - name: Deploy to prod
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          ID_REGISTRY: ${{ secrets.ID_CONTAINER_REGISTRY }}
+          YC_TOKEN: ${{ secrets.YC_TOKEN }}
+        run: |
+          # Create SSH command
+          SSH_COMMAND="ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $SSH_USERNAME@$SSH_HOST"
+
+          # Generate SSH key
+          echo "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          # Deploy commands
+          $SSH_COMMAND << EOF
             sudo groupadd docker
             sudo usermod -aG docker ${USER}
-            docker login --username oauth --password ${{ secrets.YC_TOKEN }} cr.yandex
-            docker kill $(docker ps -q)
-            docker rm &(docker ps -a -q)
-            docker image prune -f
+            echo "$YC_TOKEN" | docker login --username oauth --password-stdin cr.yandex
+            docker kill $(docker ps -q) || true
+            docker rm &(docker ps -a -q) || true
+            docker image prune -f || true
 
-            docker pull cr.yandex/${{ secrets.ID_CONTAINER_REGISTRY }}/app:${{ env.VER }}_latest
-            docker run -d --restart unless-stopped -p 3000:3000 cr.yandex/${{secrets.ID_CONTAINER_REGISTRY}}/app:${{ env.VER }}_latest
+            docker pull cr.yandex/$ID_REGISTRY/app:${{ env.VER }}_latest
+            docker run -d --restart unless-stopped -p 3000:3000 cr.yandex/$ID_REGISTRY/app:${{ env.VER }}_latest
+          EOF
